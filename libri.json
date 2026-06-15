@@ -1,0 +1,42 @@
+[
+  {
+    "titolo": "Il nome della rosa",
+    "autore": "Umberto Eco",
+    "anno": 1980,
+    "letto": "",
+    "formato": null,
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Sapiens",
+    "autore": "Yuval Noah Harari",
+    "anno": 2011,
+    "letto": "",
+    "formato": "digitale",
+    "dimensioneMb": 4.2
+  },
+  {
+    "titolo": "La storia infinita",
+    "autore": "Michael Ende",
+    "anno": 1979,
+    "letto": "",
+    "formato": null,
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "1984",
+    "autore": "George Orwell",
+    "anno": 1949,
+    "letto": "",
+    "formato": null,
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Dune",
+    "autore": "Frank Herbert",
+    "anno": 1965,
+    "letto": "",
+    "formato": "digitale",
+    "dimensioneMb": 7.8
+  }
+]
