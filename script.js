@@ -1,5 +1,17 @@
 // Mini-libreria — Settimana VII Giorno I
 
+// === Utility DOM ===
+
+function make(tag, props = {}, ...children) {
+  const el = document.createElement(tag);
+  const { dataset: ds, style: st, ...rest } = props;
+  Object.assign(el, rest);
+  if (ds) Object.assign(el.dataset, ds);
+  if (st) Object.assign(el.style, st);
+  if (children.length) el.append(...children);
+  return el;
+}
+
 // === Classi ===
 
 class Libro {
@@ -21,7 +33,7 @@ class LibroDigitale extends Libro {
 
 // === Stato (array di libri) ===
 
-function make({ titolo, autore, anno, formato, dimensioneMb = 0, letto = false }) {
+function creaLibro({ titolo, autore, anno, formato, dimensioneMb = 0, letto = false }) {
   const libro = formato === 'digitale'
     ? new LibroDigitale(titolo, autore, anno, dimensioneMb)
     : new Libro(titolo, autore, anno);
@@ -35,38 +47,37 @@ function salva() {
 
 function caricaDaStorage() {
   const raw = localStorage.getItem('libreria');
-  return raw ? JSON.parse(raw).map(make) : null;
+  return raw ? JSON.parse(raw).map(creaLibro) : null;
 }
 
 const libri = caricaDaStorage() || [];
 
 // === Render ===
 
+function creaElementoLibro(libro, i) {
+  const isDigitale = libro instanceof LibroDigitale;
+  return make('li', { className: 'libro-item', style: { borderLeftColor: libro.letto ? '#28a745' : 'hsl(220, 50%, 25%)' } },
+    make('div', { className: 'libro-info' },
+      make('div', { className: 'libro-titolo' },
+        make('strong', { textContent: libro.titolo }),
+        make('span', { className: 'badge-formato', textContent: isDigitale ? `digitale (${libro.dimensioneMb} MB)` : 'cartaceo' })
+      ),
+      make('div', { className: 'libro-meta', textContent: `${libro.autore} — ${libro.anno}` })
+    ),
+    make('div', { className: 'libro-azione' },
+      make('button', {
+        className: libro.letto ? 'btn btn-sm btn-rimuovi' : 'btn btn-outline-secondary btn-sm btn-segna',
+        textContent: libro.letto ? '✓ letto ×' : 'Segna come letto',
+        dataset: { index: i },
+      })
+    )
+  );
+}
+
 function render() {
   const lista = document.getElementById('lista-libri');
   document.getElementById('titolo-lista').textContent = `I tuoi libri (${libri.length})`;
-
-  lista.innerHTML = libri.map((libro, i) => {
-    const isDigitale = libro instanceof LibroDigitale;
-    const borderColor = libro.letto ? '#28a745' : 'hsl(220, 50%, 25%)';
-
-    const formatoBadge = isDigitale
-      ? `<span class="badge-formato">digitale (${libro.dimensioneMb} MB)</span>`
-      : `<span class="badge-formato">cartaceo</span>`;
-
-    const azione = libro.letto
-      ? `<button class="btn btn-sm btn-rimuovi" data-index="${i}">&#10003; letto &times;</button>`
-      : `<button class="btn btn-outline-secondary btn-sm btn-segna" data-index="${i}">Segna come letto</button>`;
-
-    return `
-      <li class="libro-item" style="border-left-color: ${borderColor}">
-        <div class="libro-info">
-          <div class="libro-titolo"><strong>${libro.titolo}</strong> ${formatoBadge}</div>
-          <div class="libro-meta">${libro.autore} — ${libro.anno}</div>
-        </div>
-        <div class="libro-azione">${azione}</div>
-      </li>`;
-  }).join('');
+  lista.replaceChildren(...libri.map(creaElementoLibro));
 }
 
 // === Avvio: carica JSON di default se localStorage è vuoto ===
@@ -75,7 +86,7 @@ if (libri.length === 0) {
   fetch('libri.json')
     .then(r => r.json())
     .then(dati => {
-      dati.map(make).forEach(l => libri.push(l));
+      dati.map(creaLibro).forEach(l => libri.push(l));
       salva();
       render();
     });
@@ -97,12 +108,11 @@ document.getElementById('form-libro').addEventListener('submit', function (e) {
   const anno = parseInt(document.getElementById('anno').value, 10);
   const formato = document.getElementById('formato').value;
 
-  const libro = make({
+  libri.push(creaLibro({
     titolo, autore, anno, formato,
     dimensioneMb: parseFloat(document.getElementById('dimensione').value) || 0,
-  });
+  }));
 
-  libri.push(libro);
   salva();
   render();
   this.reset();
