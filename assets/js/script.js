@@ -101,6 +101,11 @@ function creaElementoLibro(libro, i) {
         textContent: libro.letto ? "✓ letto ×" : "Segna come letto",
         dataset: { index: i },
       }),
+      make("button", {
+        className: "btn btn-sm btn-outline-danger btn-elimina",
+        textContent: "Rimuovi",
+        dataset: { index: i },
+      }),
     ),
   );
 }
@@ -158,12 +163,28 @@ document.getElementById("form-libro").addEventListener("submit", function (e) {
   document.getElementById("campo-dimensione").style.display = "none";
 });
 
-// Event delegation: segna/rimuovi letto
+// Event delegation: segna/de-segna letto ed elimina singolo libro
 document.getElementById("lista-libri").addEventListener("click", function (e) {
-  const btn = e.target.closest(".btn-segna, .btn-rimuovi");
-  if (!btn) return;
-  const i = parseInt(btn.dataset.index, 10);
-  libri[i].letto = btn.classList.contains("btn-segna");
+  const btnToggle = e.target.closest(".btn-segna, .btn-rimuovi");
+  const btnElimina = e.target.closest(".btn-elimina");
+
+  if (btnToggle) {
+    const i = parseInt(btnToggle.dataset.index, 10);
+    libri[i].letto = btnToggle.classList.contains("btn-segna");
+    salva();
+    render();
+  } else if (btnElimina) {
+    const i = parseInt(btnElimina.dataset.index, 10);
+    libri.splice(i, 1);
+    salva();
+    render();
+  }
+});
+
+// Svuota tutti i libri
+document.getElementById("btn-svuota").addEventListener("click", function () {
+  if (!libri.length) return;
+  libri.length = 0;
   salva();
   render();
 });

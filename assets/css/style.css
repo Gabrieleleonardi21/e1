@@ -80,6 +80,19 @@ body {
   font-weight: normal;
 }
 
+/* Header lista con bottone Svuota tutto */
+.lista-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Bottoni azione accanto (segna + rimuovi) */
+.libro-azione {
+  display: flex;
+  gap: 6px;
+}
+
 .btn-rimuovi {
   font-size: 0.875rem;
   color: #28a745;
