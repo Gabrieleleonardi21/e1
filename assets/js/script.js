@@ -58,7 +58,7 @@ function caricaDaStorage() {
   return raw ? JSON.parse(raw).map(creaLibro) : null;
 }
 
-const libri = caricaDaStorage() || [];
+let libri = caricaDaStorage() || [];
 
 // Stato UI: filtro attivo e campo di ordinamento
 let filtroAttivo = "tutti"; // "tutti" | "da-leggere" | "letti"
@@ -205,7 +205,7 @@ document.getElementById("lista-libri").addEventListener("click", function (e) {
     render();
   } else if (btnElimina) {
     const i = parseInt(btnElimina.dataset.index, 10);
-    libri.splice(i, 1);
+    libri = libri.filter((_, idx) => idx !== i);
     salva();
     render();
   }
