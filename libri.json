@@ -3,15 +3,15 @@
     "titolo": "Il nome della rosa",
     "autore": "Umberto Eco",
     "anno": 1980,
-    "letto": "",
-    "formato": null,
+    "letto": false,
+    "formato": "cartaceo",
     "dimensioneMb": null
   },
   {
     "titolo": "Sapiens",
     "autore": "Yuval Noah Harari",
     "anno": 2011,
-    "letto": "",
+    "letto": true,
     "formato": "digitale",
     "dimensioneMb": 4.2
   },
@@ -19,24 +19,104 @@
     "titolo": "La storia infinita",
     "autore": "Michael Ende",
     "anno": 1979,
-    "letto": "",
-    "formato": null,
+    "letto": false,
+    "formato": "cartaceo",
     "dimensioneMb": null
   },
   {
     "titolo": "1984",
     "autore": "George Orwell",
     "anno": 1949,
-    "letto": "",
-    "formato": null,
+    "letto": true,
+    "formato": "cartaceo",
     "dimensioneMb": null
   },
   {
     "titolo": "Dune",
     "autore": "Frank Herbert",
     "anno": 1965,
-    "letto": "",
+    "letto": false,
     "formato": "digitale",
     "dimensioneMb": 7.8
+  },
+  {
+    "titolo": "Il Gattopardo",
+    "autore": "Giuseppe Tomasi di Lampedusa",
+    "anno": 1958,
+    "letto": true,
+    "formato": "cartaceo",
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Harry Potter e la pietra filosofale",
+    "autore": "J.K. Rowling",
+    "anno": 1997,
+    "letto": false,
+    "formato": "digitale",
+    "dimensioneMb": 2.1
+  },
+  {
+    "titolo": "Il Signore degli Anelli",
+    "autore": "J.R.R. Tolkien",
+    "anno": 1954,
+    "letto": false,
+    "formato": "cartaceo",
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Orgoglio e pregiudizio",
+    "autore": "Jane Austen",
+    "anno": 1813,
+    "letto": true,
+    "formato": "digitale",
+    "dimensioneMb": 1.5
+  },
+  {
+    "titolo": "Cento anni di solitudine",
+    "autore": "Gabriel García Márquez",
+    "anno": 1967,
+    "letto": false,
+    "formato": "cartaceo",
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Il processo",
+    "autore": "Franz Kafka",
+    "anno": 1925,
+    "letto": true,
+    "formato": "digitale",
+    "dimensioneMb": 0.8
+  },
+  {
+    "titolo": "Fahrenheit 451",
+    "autore": "Ray Bradbury",
+    "anno": 1953,
+    "letto": false,
+    "formato": "cartaceo",
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "L'alchimista",
+    "autore": "Paulo Coelho",
+    "anno": 1988,
+    "letto": false,
+    "formato": "digitale",
+    "dimensioneMb": 1.2
+  },
+  {
+    "titolo": "Anna Karenina",
+    "autore": "Lev Tolstoj",
+    "anno": 1878,
+    "letto": false,
+    "formato": "cartaceo",
+    "dimensioneMb": null
+  },
+  {
+    "titolo": "Neuromante",
+    "autore": "William Gibson",
+    "anno": 1984,
+    "letto": false,
+    "formato": "digitale",
+    "dimensioneMb": 2.4
   }
 ]
