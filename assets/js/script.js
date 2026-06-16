@@ -60,6 +60,10 @@ function caricaDaStorage() {
 
 const libri = caricaDaStorage() || [];
 
+// Stato UI: filtro attivo e campo di ordinamento
+let filtroAttivo = "tutti"; // "tutti" | "da-leggere" | "letti"
+let ordinamento = "titolo"; // "titolo" | "autore" | "anno"
+
 // === Render ===
 
 function creaElementoLibro(libro, i) {
@@ -112,9 +116,35 @@ function creaElementoLibro(libro, i) {
 
 function render() {
   const lista = document.getElementById("lista-libri");
+
+  // Applica filtro
+  const libriFiltrati = libri.filter((l) => {
+    if (filtroAttivo === "letti") return l.letto;
+    if (filtroAttivo === "da-leggere") return !l.letto;
+    return true;
+  });
+
+  // Ordina la copia senza mutare l'array originale
+  const libriOrdinati = [...libriFiltrati].sort((a, b) =>
+    ordinamento === "anno"
+      ? a.anno - b.anno
+      : a[ordinamento].localeCompare(b[ordinamento]),
+  );
+
   document.getElementById("titolo-lista").textContent =
     `I tuoi libri (${libri.length})`;
-  lista.replaceChildren(...libri.map(creaElementoLibro));
+
+  // L'indice passato deve essere quello reale in `libri` (non del sottoinsieme)
+  lista.replaceChildren(
+    ...libriOrdinati.map((libro) =>
+      creaElementoLibro(libro, libri.indexOf(libro)),
+    ),
+  );
+
+  // Sincronizza lo stato active sui bottoni filtro
+  document.querySelectorAll(".btn-filtro").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.filtro === filtroAttivo);
+  });
 }
 
 // === Avvio: carica JSON di default se localStorage è vuoto ===
@@ -186,5 +216,19 @@ document.getElementById("btn-svuota").addEventListener("click", function () {
   if (!libri.length) return;
   libri.length = 0;
   salva();
+  render();
+});
+
+// Filtri: Tutti / Da leggere / Letti
+document.querySelector(".filtri").addEventListener("click", function (e) {
+  const btn = e.target.closest(".btn-filtro");
+  if (!btn) return;
+  filtroAttivo = btn.dataset.filtro;
+  render();
+});
+
+// Ordinamento dalla select nel form
+document.getElementById("ordinamento").addEventListener("change", function () {
+  ordinamento = this.value;
   render();
 });

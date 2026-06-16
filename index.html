@@ -43,6 +43,15 @@
             <input type="number" class="form-control" id="dimensione" step="0.1" min="0">
           </div>
           <button type="submit" class="btn btn-libreria">Aggiungi</button>
+          <hr class="my-3">
+          <div class="mb-0">
+            <label for="ordinamento" class="form-label fw-bold">Ordina per</label>
+            <select class="form-select" id="ordinamento">
+              <option value="titolo">Titolo</option>
+              <option value="autore">Autore</option>
+              <option value="anno">Anno</option>
+            </select>
+          </div>
         </form>
       </section>
 
@@ -50,6 +59,11 @@
         <div class="lista-header">
           <h2 id="titolo-lista">I tuoi libri (0)</h2>
           <button id="btn-svuota" class="btn btn-sm btn-outline-danger">Svuota tutto</button>
+        </div>
+        <div class="filtri mt-3">
+          <button class="btn btn-sm btn-filtro active" data-filtro="tutti">Tutti</button>
+          <button class="btn btn-sm btn-filtro" data-filtro="da-leggere">Da leggere</button>
+          <button class="btn btn-sm btn-filtro" data-filtro="letti">Letti</button>
         </div>
         <ul id="lista-libri" class="list-unstyled mt-3">
           <!-- popolato da JavaScript -->

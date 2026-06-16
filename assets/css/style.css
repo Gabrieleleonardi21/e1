@@ -80,6 +80,23 @@ body {
   font-weight: normal;
 }
 
+/* Bottoni filtro */
+.filtri {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-filtro {
+  background: transparent;
+  border: 1px solid hsl(220, 50%, 25%);
+  color: hsl(220, 50%, 25%);
+}
+.btn-filtro:hover,
+.btn-filtro.active {
+  background: hsl(220, 50%, 25%);
+  color: white;
+}
+
 /* Header lista con bottone Svuota tutto */
 .lista-header {
   display: flex;
