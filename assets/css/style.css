@@ -120,3 +120,35 @@ body {
   background: #28a745;
   color: white;
 }
+
+/* Sezione Cerca */
+.spinner {
+  color: #6c757d;
+  font-size: 0.9rem;
+  padding: 6px 0;
+}
+
+.risultati {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.risultato-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 4px solid hsl(220, 50%, 25%);
+}
+
+.risultato-item .titolo {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.risultato-item .meta {
+  font-size: 0.85rem;
+}

@@ -16,6 +16,17 @@
 
     <main class="container py-4">
 
+      <section class="cerca-section card p-4 mb-4">
+        <h2 class="mb-3">Cerca</h2>
+        <div class="campo mb-3">
+          <label for="cerca" class="form-label fw-bold">Cerca un libro</label>
+          <input type="text" id="cerca" class="form-control" placeholder="es. harari, tolkien...">
+        </div>
+        <div id="spinner" class="spinner" hidden>Caricamento in corso...</div>
+        <div id="errore" class="alert alert-danger" hidden></div>
+        <ul id="risultati" class="risultati list-unstyled mt-3"></ul>
+      </section>
+
       <section class="card p-4 mb-4">
         <h4 class="mb-3">Aggiungi un libro</h4>
         <form id="form-libro">

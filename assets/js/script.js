@@ -236,3 +236,159 @@ document.getElementById("ordinamento").addEventListener("change", function () {
   ordinamento = this.value;
   render();
 });
+
+// === Sezione Cerca ===
+
+/** Mostra lo spinner e nasconde l'area errore */
+function mostraSpinner() {
+  document.getElementById("spinner").removeAttribute("hidden");
+  document.getElementById("errore").setAttribute("hidden", "");
+}
+
+/** Nasconde lo spinner */
+function nascondiSpinner() {
+  document.getElementById("spinner").setAttribute("hidden", "");
+}
+
+// Mostra un messaggio di errore nell'area #errore (msg = testo da visualizzare)
+function mostraErrore(msg) {
+  const el = document.getElementById("errore");
+  el.textContent = msg;
+  el.removeAttribute("hidden");
+}
+
+// Cerca libri su OpenLibrary e popola #risultati (query = testo da cercare); usa debounce per evitare troppe richieste
+function cerca(query) {
+  mostraSpinner();
+  const url = `https://openlibrary.org/search.json?q=${query}&limit=10`;
+  fetch(url)
+    .then(function (response) {
+      if (!response.ok) throw new Error("Errore HTTP " + response.status);
+      return response.json();
+    })
+    .then(function (dati) {
+      renderRisultati(dati.docs);
+    })
+    .catch(function (err) {
+      mostraErrore("Impossibile completare la ricerca: " + err.message);
+    })
+    .finally(function () {
+      nascondiSpinner();
+    });
+}
+
+// Renderizza i risultati in #risultati (docs = array dall'API OpenLibrary); scarta i libri senza autore
+function renderRisultati(docs) {
+  const lista = document.getElementById("risultati");
+
+  // Scarta i libri senza autore
+  const docsFiltrati = docs.filter(function (d) {
+    return d.author_name;
+  });
+
+  if (docsFiltrati.length === 0) {
+    lista.replaceChildren(make("li", { textContent: "Nessun risultato." }));
+    return;
+  }
+
+  lista.replaceChildren(
+    ...docsFiltrati.map(function (d) {
+      let autore = "Autore sconosciuto";
+      if (d.author_name && d.author_name[0]) {
+        autore = d.author_name[0];
+      }
+
+      let anno = "?";
+      if (d.first_publish_year) {
+        anno = d.first_publish_year;
+      }
+
+      const titolo = d.title;
+
+      const btnAggiungi = make("button", {
+        className: "btn btn-sm btn-libreria",
+        textContent: "Aggiungi",
+        dataset: { titolo: titolo, autore: autore, anno: String(anno) },
+      });
+
+      // Bottone extra: mostra la descrizione del libro via API
+      const btnDettagli = make("button", {
+        className: "btn btn-sm btn-outline-secondary",
+        textContent: "Dettagli",
+        dataset: { key: d.key },
+      });
+
+      return make(
+        "li",
+        { className: "risultato-item" },
+        make(
+          "div",
+          { className: "info" },
+          make("span", { className: "titolo fw-bold", textContent: titolo }),
+          make("div", {
+            className: "meta text-muted",
+            textContent: autore + " — " + anno,
+          }),
+        ),
+        make("div", { className: "d-flex gap-2" }, btnAggiungi, btnDettagli),
+      );
+    }),
+  );
+}
+
+// Variabile per il debounce della ricerca
+let timeoutId;
+
+// Listener input su #cerca con debounce (400ms)
+document.getElementById("cerca").addEventListener("input", function (e) {
+  const query = e.target.value.trim();
+  if (query.length < 3) {
+    document.getElementById("risultati").replaceChildren();
+    return;
+  }
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function () {
+    cerca(query);
+  }, 400);
+});
+
+// Event delegation su #risultati: gestisce "Aggiungi" e "Dettagli"
+document.getElementById("risultati").addEventListener("click", function (e) {
+  const btnAggiungi = e.target.closest("button[data-titolo]");
+  if (btnAggiungi) {
+    const titolo = btnAggiungi.dataset.titolo;
+    const autore = btnAggiungi.dataset.autore;
+    const anno = parseInt(btnAggiungi.dataset.anno, 10) || 0;
+    libri.push(creaLibro({ titolo, autore, anno, formato: "cartaceo" }));
+    salva();
+    render();
+    btnAggiungi.textContent = "✓ Aggiunto";
+    btnAggiungi.setAttribute("disabled", "");
+    return;
+  }
+
+  // Dettagli: fetch della descrizione del libro singolo
+  const btnDettagli = e.target.closest("button[data-key]");
+  if (btnDettagli) {
+    const key = btnDettagli.dataset.key;
+    fetch("https://openlibrary.org" + key + ".json")
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (dati) {
+        let descrizione = "nessuna descrizione";
+        if (dati.description) {
+          if (typeof dati.description === "string") {
+            descrizione = dati.description;
+          } else if (dati.description.value) {
+            descrizione = dati.description.value;
+          }
+        }
+        alert(descrizione);
+      })
+      .catch(function () {
+        alert("nessuna descrizione");
+      });
+  }
+});
+
