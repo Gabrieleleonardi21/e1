@@ -156,6 +156,10 @@ if (libri.length === 0) {
       dati.map(creaLibro).forEach((l) => libri.push(l));
       salva();
       render();
+    })
+    .catch((err) => {
+      console.error("Errore nel caricamento di libri.json:", err);
+      render(); // mostra la lista vuota comunque
     });
 } else {
   render();
