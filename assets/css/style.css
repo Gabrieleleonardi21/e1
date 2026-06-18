@@ -186,11 +186,25 @@ body {
 }
 
 /* Sezione Cerca */
-.spinner {
+/* Wrapper relativo per posizionare lo spinner dentro l'input */
+.cerca-wrapper {
+  position: relative;
+}
+
+/* Spinner sotto l'input: icona + testo affiancati */
+#spinner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  pointer-events: none;
+}
+
+.spinner-testo {
   color: #6c757d;
   font-size: 0.9rem;
-  padding: 6px 0;
 }
+
 
 .risultati {
   display: flex;

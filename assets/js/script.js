@@ -408,17 +408,27 @@ function mostraErrore(msg) {
 
 // Cerca libri su OpenLibrary e popola #risultati (query = testo da cercare); usa debounce per evitare troppe richieste
 async function cerca(query) {
+  // Annulla la fetch precedente se ancora in volo (es. digitazione rapida)
+  if (controllerRicerca) controllerRicerca.abort();
+  controllerRicerca = new AbortController();
+
   mostraSpinner();
-  const url = `https://openlibrary.org/search.json?q=${query}&limit=10`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`;
+  let cancellata = false;
   try {
-    const r = await fetch(url);
+    const r = await fetch(url, { signal: controllerRicerca.signal });
     if (!r.ok) throw new Error("Errore HTTP " + r.status);
     const dati = await r.json();
     renderRisultati(dati.docs);
   } catch (err) {
-    mostraErrore("Impossibile completare la ricerca: " + err.message);
+    // AbortError = ricerca sostituita da una nuova, non mostrare errore né nascondere spinner
+    if (err.name === "AbortError") {
+      cancellata = true;
+    } else {
+      mostraErrore("Impossibile completare la ricerca: " + err.message);
+    }
   } finally {
-    nascondiSpinner();
+    if (!cancellata) nascondiSpinner();
   }
 }
 
@@ -481,13 +491,20 @@ function renderRisultati(docs) {
   );
 }
 
-// Variabile per il debounce della ricerca
+// Variabile per il debounce della ricerca e controller per annullare fetch in volo
 let timeoutId;
+let controllerRicerca = null;
 
 // Listener input su #cerca con debounce (400ms)
 document.getElementById("cerca").addEventListener("input", function (e) {
   const query = e.target.value.trim();
   if (query.length < 3) {
+    // Annulla fetch in volo se l'utente cancella la query
+    if (controllerRicerca) {
+      controllerRicerca.abort();
+      controllerRicerca = null;
+      nascondiSpinner();
+    }
     document.getElementById("risultati").replaceChildren();
     return;
   }

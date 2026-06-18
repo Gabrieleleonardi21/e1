@@ -30,9 +30,14 @@
         <h2 class="mb-3">Cerca</h2>
         <div class="campo mb-3">
           <label for="cerca" class="form-label fw-bold">Cerca un libro</label>
-          <input type="text" id="cerca" class="form-control" placeholder="es. harari, tolkien...">
+          <div class="cerca-wrapper">
+            <input type="text" id="cerca" class="form-control" placeholder="es. harari, tolkien...">
+            <div id="spinner" hidden>
+              <div class="spinner-border spinner-border-sm text-secondary" role="status" aria-hidden="true"></div>
+              <span class="spinner-testo">Ricerca in corso...</span>
+            </div>
+          </div>
         </div>
-        <div id="spinner" class="spinner" hidden>Caricamento in corso...</div>
         <div id="errore" class="alert alert-danger" hidden></div>
         <ul id="risultati" class="risultati list-unstyled mt-3"></ul>
       </section>
