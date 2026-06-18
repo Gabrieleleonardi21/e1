@@ -49,12 +49,18 @@ function creaLibro({
   return libro;
 }
 
+// Restituisce la chiave localStorage da usare: personale se loggato, generica altrimenti
+function chiaveLibreria() {
+  const utente = getUtente();
+  return utente ? "libreria-" + utente.username : "libreria";
+}
+
 function salva() {
-  localStorage.setItem("libreria", JSON.stringify(libri));
+  localStorage.setItem(chiaveLibreria(), JSON.stringify(libri));
 }
 
 function caricaDaStorage() {
-  const raw = localStorage.getItem("libreria");
+  const raw = localStorage.getItem(chiaveLibreria());
   return raw ? JSON.parse(raw).map(creaLibro) : null;
 }
 
@@ -147,23 +153,34 @@ function render() {
   });
 }
 
-// === Avvio: carica JSON di default se localStorage è vuoto ===
+// === Avvio ===
 
-if (libri.length === 0) {
-  fetch("libri.json")
-    .then((r) => r.json())
-    .then((dati) => {
-      dati.map(creaLibro).forEach((l) => libri.push(l));
-      salva();
-      render();
-    })
-    .catch((err) => {
-      console.error("Errore nel caricamento di libri.json:", err);
-      render(); // mostra la lista vuota comunque
-    });
-} else {
-  render();
+// Carica libri.json solo per utenti anonimi con libreria vuota, altrimenti renderizza
+function renderLibri() {
+  if (libri.length === 0 && !getToken()) {
+    fetch("libri.json")
+      .then((r) => r.json())
+      .then((dati) => {
+        dati.map(creaLibro).forEach((l) => libri.push(l));
+        salva();
+        render();
+      })
+      .catch((err) => {
+        console.error("Errore nel caricamento di libri.json:", err);
+        render();
+      });
+  } else {
+    render();
+  }
 }
+
+async function avvio() {
+  renderLibri();
+  renderAuthBox();
+  await mostraProfilo();
+}
+
+avvio();
 
 // === Eventi ===
 
@@ -237,6 +254,138 @@ document.getElementById("ordinamento").addEventListener("change", function () {
   render();
 });
 
+// === Autenticazione ===
+
+function getToken() {
+  return localStorage.getItem("auth.token");
+}
+
+// Legge auth.user dal localStorage parsando il JSON (fallback null se assente o non valido)
+function getUtente() {
+  const raw = localStorage.getItem("auth.user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function logout() {
+  localStorage.removeItem("auth.token");
+  localStorage.removeItem("auth.user");
+  // Torna alla libreria generica (chiave "libreria")
+  libri = caricaDaStorage() || [];
+  render();
+  document.getElementById("profilo-section").setAttribute("hidden", "");
+}
+
+async function login(username, password) {
+  const r = await fetch("https://dummyjson.com/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!r.ok) throw new Error("Credenziali non valide");
+  const dati = await r.json();
+  localStorage.setItem("auth.token", dati.accessToken);
+  localStorage.setItem("auth.user", JSON.stringify(dati));
+  return dati;
+}
+
+// Fetcha il profilo da /auth/me usando il token salvato; ritorna null se il token manca
+async function caricaProfilo() {
+  const token = getToken();
+  if (!token) return null;
+  const r = await fetch("https://dummyjson.com/auth/me", {
+    headers: { Authorization: "Bearer " + token },
+  });
+  if (!r.ok) throw new Error("Sessione scaduta");
+  return r.json();
+}
+
+// Popola #auth-box: saluto+logout se loggato, form di login altrimenti
+function renderAuthBox() {
+  const box = document.getElementById("auth-box");
+  const utente = getUtente();
+
+  if (utente) {
+    const saluto = make("span", {
+      className: "saluto",
+      textContent: "Ciao " + utente.firstName,
+    });
+    const btnLogout = make("button", {
+      className: "btn btn-sm btn-logout",
+      id: "btn-logout",
+      textContent: "Esci",
+    });
+    btnLogout.addEventListener("click", function () {
+      logout();
+      renderAuthBox();
+    });
+    box.replaceChildren(saluto, btnLogout);
+  } else {
+    const inputUser = make("input", {
+      type: "text",
+      id: "login-username",
+      className: "form-control form-control-sm",
+      value: "emilys",
+      placeholder: "Username",
+    });
+    const inputPass = make("input", {
+      type: "password",
+      id: "login-password",
+      className: "form-control form-control-sm",
+      value: "emilyspass",
+      placeholder: "Password",
+    });
+    const btnSubmit = make("button", {
+      type: "submit",
+      className: "btn btn-sm btn-libreria",
+      textContent: "Accedi",
+    });
+    const form = make("form", { id: "form-login" }, inputUser, inputPass, btnSubmit);
+    form.addEventListener("submit", gestisciLogin);
+    box.replaceChildren(form);
+  }
+}
+
+async function gestisciLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+  try {
+    await login(username, password);
+    // Carica la libreria personale dell'utente (vuota se è la prima volta)
+    libri = caricaDaStorage() || [];
+    render();
+    renderAuthBox();
+    await mostraProfilo();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// Recupera e mostra il profilo nella sezione #profilo-section (esce se non c'è token)
+async function mostraProfilo() {
+  if (!getToken()) return;
+  try {
+    const profilo = await caricaProfilo();
+    const img = make("img", {
+      src: profilo.image,
+      alt: profilo.firstName,
+      className: "profilo-img",
+    });
+    const nome = make("p", {}, make("strong", { textContent: profilo.firstName + " " + profilo.lastName }));
+    const dettagli = make("p", { textContent: "@" + profilo.username + " — " + profilo.email });
+    const info = make("div", { className: "info" }, nome, dettagli);
+    document.getElementById("profilo").replaceChildren(img, info);
+    document.getElementById("profilo-section").removeAttribute("hidden");
+  } catch (err) {
+    console.error("Errore nel caricamento del profilo:", err);
+  }
+}
+
 // === Sezione Cerca ===
 
 /** Mostra lo spinner e nasconde l'area errore */
@@ -258,23 +407,19 @@ function mostraErrore(msg) {
 }
 
 // Cerca libri su OpenLibrary e popola #risultati (query = testo da cercare); usa debounce per evitare troppe richieste
-function cerca(query) {
+async function cerca(query) {
   mostraSpinner();
   const url = `https://openlibrary.org/search.json?q=${query}&limit=10`;
-  fetch(url)
-    .then(function (response) {
-      if (!response.ok) throw new Error("Errore HTTP " + response.status);
-      return response.json();
-    })
-    .then(function (dati) {
-      renderRisultati(dati.docs);
-    })
-    .catch(function (err) {
-      mostraErrore("Impossibile completare la ricerca: " + err.message);
-    })
-    .finally(function () {
-      nascondiSpinner();
-    });
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("Errore HTTP " + r.status);
+    const dati = await r.json();
+    renderRisultati(dati.docs);
+  } catch (err) {
+    mostraErrore("Impossibile completare la ricerca: " + err.message);
+  } finally {
+    nascondiSpinner();
+  }
 }
 
 // Renderizza i risultati in #risultati (docs = array dall'API OpenLibrary); scarta i libri senza autore

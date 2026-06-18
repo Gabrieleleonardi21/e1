@@ -21,7 +21,6 @@ body {
   background: hsl(220, 50%, 25%);
   color: white;
   padding: 30px 20px;
-  text-align: center;
 }
 
 .site-header h1 {
@@ -30,6 +29,71 @@ body {
 .site-header p {
   margin: 0;
   opacity: 0.85;
+}
+
+/* Layout header: titolo a sinistra, auth-box a destra */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 720px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.auth-box {
+  flex-shrink: 0;
+}
+
+/* Form di login nel header */
+.auth-box #form-login {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.saluto {
+  color: white;
+  margin-right: 10px;
+  font-size: 0.95rem;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: white;
+}
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+/* Sezione profilo utente */
+.profilo-section {
+  background: white;
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-left: 4px solid hsl(220, 50%, 25%);
+}
+
+.profilo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.profilo-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profilo .info p {
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Pulsante Aggiungi */
