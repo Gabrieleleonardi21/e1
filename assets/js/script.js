@@ -41,10 +41,12 @@ function creaLibro({
   dimensioneMb = 0,
   letto = false,
 }) {
-  const libro =
-    formato === "digitale"
-      ? new LibroDigitale(titolo, autore, anno, dimensioneMb)
-      : new Libro(titolo, autore, anno);
+  let libro;
+  if (formato === "digitale") {
+    libro = new LibroDigitale(titolo, autore, anno, dimensioneMb);
+  } else {
+    libro = new Libro(titolo, autore, anno);
+  }
   libro.letto = Boolean(letto);
   return libro;
 }
@@ -74,13 +76,25 @@ let ordinamento = "titolo"; // "titolo" | "autore" | "anno"
 
 function creaElementoLibro(libro, i) {
   const isDigitale = libro instanceof LibroDigitale;
+
+  let testoFormato = "cartaceo";
+  if (isDigitale) testoFormato = `digitale (${libro.dimensioneMb} MB)`;
+
+  let borderColor = "hsl(220, 50%, 25%)";
+  if (libro.letto) borderColor = "#28a745";
+
+  let classeBtn = "btn btn-outline-secondary btn-sm btn-segna";
+  let testoBtn = "Segna come letto";
+  if (libro.letto) {
+    classeBtn = "btn btn-sm btn-rimuovi";
+    testoBtn = "✓ letto ×";
+  }
+
   return make(
     "li",
     {
       className: "libro-item",
-      style: {
-        borderLeftColor: libro.letto ? "#28a745" : "hsl(220, 50%, 25%)",
-      },
+      style: { borderLeftColor: borderColor },
     },
     make(
       "div",
@@ -89,12 +103,7 @@ function creaElementoLibro(libro, i) {
         "div",
         { className: "libro-titolo" },
         make("strong", { textContent: libro.titolo }),
-        make("span", {
-          className: "badge-formato",
-          textContent: isDigitale
-            ? `digitale (${libro.dimensioneMb} MB)`
-            : "cartaceo",
-        }),
+        make("span", { className: "badge-formato", textContent: testoFormato }),
       ),
       make("div", {
         className: "libro-meta",
@@ -105,10 +114,8 @@ function creaElementoLibro(libro, i) {
       "div",
       { className: "libro-azione" },
       make("button", {
-        className: libro.letto
-          ? "btn btn-sm btn-rimuovi"
-          : "btn btn-outline-secondary btn-sm btn-segna",
-        textContent: libro.letto ? "✓ letto ×" : "Segna come letto",
+        className: classeBtn,
+        textContent: testoBtn,
         dataset: { index: i },
       }),
       make("button", {
@@ -131,11 +138,10 @@ function render() {
   });
 
   // Ordina la copia senza mutare l'array originale
-  const libriOrdinati = [...libriFiltrati].sort((a, b) =>
-    ordinamento === "anno"
-      ? a.anno - b.anno
-      : a[ordinamento].localeCompare(b[ordinamento]),
-  );
+  const libriOrdinati = [...libriFiltrati].sort(function (a, b) {
+    if (ordinamento === "anno") return a.anno - b.anno;
+    return a[ordinamento].localeCompare(b[ordinamento]);
+  });
 
   document.getElementById("titolo-lista").textContent =
     `I tuoi libri (${libri.length})`;
@@ -156,19 +162,18 @@ function render() {
 // === Avvio ===
 
 // Carica libri.json solo per utenti anonimi con libreria vuota, altrimenti renderizza
-function renderLibri() {
+async function renderLibri() {
   if (libri.length === 0 && !getToken()) {
-    fetch("libri.json")
-      .then((r) => r.json())
-      .then((dati) => {
-        dati.map(creaLibro).forEach((l) => libri.push(l));
-        salva();
-        render();
-      })
-      .catch((err) => {
-        console.error("Errore nel caricamento di libri.json:", err);
-        render();
-      });
+    try {
+      const r = await fetch("libri.json");
+      const dati = await r.json();
+      dati.map(creaLibro).forEach((l) => libri.push(l));
+      salva();
+      render();
+    } catch (err) {
+      console.error("Errore nel caricamento di libri.json:", err);
+      render();
+    }
   } else {
     render();
   }
@@ -185,8 +190,11 @@ avvio();
 // === Eventi ===
 
 document.getElementById("formato").addEventListener("change", function () {
-  document.getElementById("campo-dimensione").style.display =
-    this.value === "digitale" ? "" : "none";
+  if (this.value === "digitale") {
+    document.getElementById("campo-dimensione").style.display = "";
+  } else {
+    document.getElementById("campo-dimensione").style.display = "none";
+  }
 });
 
 document.getElementById("form-libro").addEventListener("submit", function (e) {
@@ -491,6 +499,25 @@ function renderRisultati(docs) {
   );
 }
 
+// Fetcha la descrizione di un singolo libro da OpenLibrary tramite la sua chiave API
+async function caricaDettagli(key) {
+  try {
+    const r = await fetch("https://openlibrary.org" + key + ".json");
+    const dati = await r.json();
+    let descrizione = "nessuna descrizione";
+    if (dati.description) {
+      if (typeof dati.description === "string") {
+        descrizione = dati.description;
+      } else if (dati.description.value) {
+        descrizione = dati.description.value;
+      }
+    }
+    alert(descrizione);
+  } catch {
+    alert("nessuna descrizione");
+  }
+}
+
 // Variabile per il debounce della ricerca e controller per annullare fetch in volo
 let timeoutId;
 let controllerRicerca = null;
@@ -532,25 +559,7 @@ document.getElementById("risultati").addEventListener("click", function (e) {
   // Dettagli: fetch della descrizione del libro singolo
   const btnDettagli = e.target.closest("button[data-key]");
   if (btnDettagli) {
-    const key = btnDettagli.dataset.key;
-    fetch("https://openlibrary.org" + key + ".json")
-      .then(function (r) {
-        return r.json();
-      })
-      .then(function (dati) {
-        let descrizione = "nessuna descrizione";
-        if (dati.description) {
-          if (typeof dati.description === "string") {
-            descrizione = dati.description;
-          } else if (dati.description.value) {
-            descrizione = dati.description.value;
-          }
-        }
-        alert(descrizione);
-      })
-      .catch(function () {
-        alert("nessuna descrizione");
-      });
+    caricaDettagli(btnDettagli.dataset.key);
   }
 });
 
